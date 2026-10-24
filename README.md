@@ -36,27 +36,27 @@ Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
 `setup.ps1` installs via winget where possible: Python 3.11+, Node.js LTS
 (not strictly required for v1, used for tooling), OBS Studio, and Ollama. It
 creates a Python virtualenv, installs dependencies, installs the Playwright
-browser, and downloads Piper (local text-to-speech) plus a voice model.
+browser, downloads Piper (local text-to-speech) plus a voice model, pulls the
+Ollama model, copies the config template, and pre-downloads the VB-Audio
+Cable installer.
 
 ### 2. Finish the manual steps (setup prints these too)
 
-These cannot be automated, for the reasons noted:
+Setup now does everything except these, which genuinely need your hands:
 
-1. **VB-Audio Cable** — download from
-   <https://vb-audio.com/Cable/> and install it, then reboot if prompted.
-   It is donationware. It cannot be scripted because it installs a Windows
-   audio driver, which requires you to approve the driver install.
-2. **OBS Virtual Camera** — open OBS Studio, go to Tools, and click
-   **Start Virtual Camera**. OBS must be running (or at least have the
-   virtual camera started once) for Teams to see the camera. Point an OBS
-   browser source at `http://localhost:8000/character` so the character
-   shows up in the virtual camera feed.
-3. **Ollama model** — run `ollama pull qwen2.5:3b` (or change `model` in
-   `config.json`). The model download is large and is better run once by
-   you than hidden inside setup.
-4. **Config** — copy `config.example.json` to `config.json` and adjust
-   paths/device names if your audio devices are named differently.
-5. **Optional: your own character** — two ways, video wins if both exist:
+1. **VB-Audio Cable** — setup pre-downloads the installer to
+   `tools\vb-cable\`. Right-click `VBCABLE_Setup_x64.exe`, run it as
+   administrator, click Install Driver, and reboot if prompted. It is
+   donationware. This step cannot be scripted because it installs a
+   Windows audio driver, which Windows requires a person to approve.
+2. **OBS browser source (one time)** — open OBS Studio and add a Browser
+   Source pointing at `http://localhost:8000/character`. From then on,
+   `run.bat` launches OBS with the Virtual Camera already started on
+   every run, so you never touch OBS again.
+3. **Teams sign-in (first run only)** — the first time desk-buddy opens
+   Teams, sign in in the browser window it opens. The sign-in persists
+   in the `.teams-profile` folder afterwards, so you only do this once.
+4. **Optional: your own character** — two ways, video wins if both exist:
    - **Video avatar**: put four short realistic clips in
      `character/media/` named `idle.mp4`, `listening.mp4`, `working.mp4`,
      and `speaking.mp4` and the character becomes those clips. The folder
@@ -66,9 +66,6 @@ These cannot be automated, for the reasons noted:
    With neither, desk-buddy renders a cute procedural placeholder
    character built from three.js primitives, so nothing is required to
    start.
-6. **Teams sign-in** — the first time desk-buddy opens Teams, sign in in
-   the browser window it opens. The sign-in persists in the
-   `.teams-profile` folder afterwards, so you only do this once.
 
 ### 3. Run it
 

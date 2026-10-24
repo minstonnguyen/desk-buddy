@@ -73,16 +73,56 @@ if (-not (Test-Path "config.json")) {
     Write-Host "Created config.json from config.example.json (edit it if needed)."
 }
 
+# 9. Ollama model (name read from config.json, default qwen2.5:3b)
+$ModelName = "qwen2.5:3b"
+try {
+    $cfg = Get-Content "config.json" -Raw | ConvertFrom-Json
+    if ($cfg.ollama.model) { $ModelName = $cfg.ollama.model }
+} catch {}
+# Refresh PATH: winget installs from this same session may not be on it yet.
+$env:Path = [Environment]::GetEnvironmentVariable("Path", "Machine") + ";" +
+            [Environment]::GetEnvironmentVariable("Path", "User")
+$OllamaExe = (Get-Command ollama -ErrorAction SilentlyContinue).Source
+if (-not $OllamaExe) {
+    $candidate = Join-Path $env:LOCALAPPDATA "Programs\Ollama\ollama.exe"
+    if (Test-Path $candidate) { $OllamaExe = $candidate }
+}
+if ($OllamaExe) {
+    Write-Host "Pulling Ollama model $ModelName (large download, one time)..."
+    try { & $OllamaExe pull $ModelName }
+    catch { Write-Host "!! Model pull failed; run it later with: ollama pull $ModelName" }
+} else {
+    Write-Host "!! Ollama not found; install it, then run: ollama pull $ModelName"
+}
+
+# 10. VB-Audio Cable (virtual mic driver): download + extract only.
+# Installing a driver needs an interactive admin approval, so setup
+# cannot finish this part; it just puts the installer one click away.
+$VbDir = Join-Path $PSScriptRoot "tools\vb-cable"
+$VbExe = Join-Path $VbDir "VBCABLE_Setup_x64.exe"
+if (-not (Test-Path $VbExe)) {
+    try {
+        Write-Host "Downloading VB-Audio Cable driver pack..."
+        New-Item -ItemType Directory -Force -Path $VbDir | Out-Null
+        $VbZip = Join-Path $VbDir "VBCABLE_Driver_Pack.zip"
+        Invoke-WebRequest -Uri "https://download.vb-audio.com/Download_CABLE/VBCABLE_Driver_Pack43.zip" -OutFile $VbZip
+        Expand-Archive -Path $VbZip -DestinationPath $VbDir -Force
+        Remove-Item $VbZip -Force
+    } catch {
+        Write-Host "!! VB-Cable download failed; get it from https://vb-audio.com/Cable/ instead."
+    }
+}
+
 Write-Host ""
-Write-Host "=== Manual steps you still need to do ===" -ForegroundColor Yellow
-Write-Host "1. VB-Audio Cable: download from https://vb-audio.com/Cable/ , install it, and reboot if prompted."
-Write-Host "   (Driver install cannot be scripted; Windows must approve it.)"
-Write-Host "2. OBS Virtual Camera: open OBS, add a Browser Source pointing at http://localhost:8000/character,"
-Write-Host "   then Tools -> Start Virtual Camera."
-Write-Host "3. Ollama model: run  ollama pull qwen2.5:3b  (or set another model in config.json)."
-Write-Host "4. Optional character: make a VRM model in VRoid Studio (free) and save it as character/model.vrm."
-Write-Host "   Without it, a procedural placeholder character is used."
-Write-Host "5. First Teams run: sign in to Teams in the browser window desk-buddy opens; the sign-in persists"
-Write-Host "   in the .teams-profile folder."
+Write-Host "=== Almost done: 3 things only you can click ===" -ForegroundColor Yellow
+Write-Host "1. VB-Audio Cable driver: right-click tools\vb-cable\VBCABLE_Setup_x64.exe, Run as administrator,"
+Write-Host "   click Install Driver, and reboot if prompted. (Windows requires a person to approve drivers.)"
+Write-Host "2. OBS (one time): open OBS and add a Browser Source with URL http://localhost:8000/character."
+Write-Host "   After that, run.bat starts OBS and its virtual camera automatically on every run."
+Write-Host "3. Teams: the first time desk-buddy joins a call, sign in to Teams in the window it opens."
+Write-Host "   The sign-in persists in the .teams-profile folder."
+Write-Host ""
+Write-Host "Optional: for the realistic video avatar, put idle.mp4, listening.mp4, working.mp4, and"
+Write-Host "speaking.mp4 in character\media\ (see README). Without them, a 3D or placeholder character is used."
 Write-Host ""
 Write-Host "Then start everything with:  .\run.bat"
