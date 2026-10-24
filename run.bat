@@ -14,7 +14,7 @@ tasklist /FI "IMAGENAME eq obs64.exe" 2>nul | find /I "obs64.exe" >nul
 if errorlevel 1 (
     if exist "C:\Program Files\obs-studio\bin\64bit\obs64.exe" (
         echo [desk-buddy] Starting OBS with virtual camera...
-        start "" "C:\Program Files\obs-studio\bin\64bit\obs64.exe" --start-virtualcam --minimize-to-tray
+        start "" /D "C:\Program Files\obs-studio\bin\64bit" "C:\Program Files\obs-studio\bin\64bit\obs64.exe" --start-virtualcam --minimize-to-tray
     )
 )
 echo [desk-buddy] Starting controller on http://localhost:8000
