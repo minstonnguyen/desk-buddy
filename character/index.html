@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>desk-buddy character</title>
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; }
+  body {
+    background: linear-gradient(180deg, #fdf6ec 0%, #e8f4f1 100%);
+    font-family: system-ui, sans-serif;
+  }
+  #stage { position: fixed; inset: 0; }
+  #state {
+    position: fixed; left: 12px; bottom: 12px;
+    background: rgba(0,0,0,0.55); color: #fff;
+    padding: 6px 12px; border-radius: 999px; font-size: 14px;
+  }
+  #hint {
+    position: fixed; right: 12px; bottom: 12px; color: #666; font-size: 12px;
+  }
+</style>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/",
+    "@pixiv/three-vrm": "https://cdn.jsdelivr.net/npm/@pixiv/three-vrm@3.3.0/lib/three-vrm.module.js"
+  }
+}
+</script>
+</head>
+<body>
+<div id="stage"></div>
+<div id="state">idle</div>
+<div id="hint">desk-buddy · drop character/model.vrm to use your own model</div>
+<script type="module" src="app.js"></script>
+</body>
+</html>

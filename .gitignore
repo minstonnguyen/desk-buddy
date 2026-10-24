@@ -1,0 +1,31 @@
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Node (only if you add tooling later)
+node_modules/
+
+# Downloaded tools and models (large, re-downloadable)
+tools/
+models/
+
+# Transcripts are personal; keep the folder, not the contents
+transcripts/*.md
+!transcripts/.gitkeep
+
+# Playwright persistent browser profile (holds your Teams sign-in)
+.teams-profile/
+
+# Local config overrides (config.example.json is the template)
+config.json
+config.local.json
+
+# Misc
+.env
+*.wav
+*.mp3
+.DS_Store
+Thumbs.db
