@@ -9,10 +9,12 @@ no paid services, no monthly cost.
 
 - **Joins Teams calls** through the Teams web app, with its camera set to the
   OBS Virtual Camera and its mic set to the VB-Cable virtual mic.
-- **Shows a cute 3D character** (three.js + three-vrm) with four animation
-  states: idle, listening, working/typing, and speaking. It works out of the
-  box with a built-in procedural character; drop your own `character/model.vrm`
-  in (made free in VRoid Studio) and it uses that instead.
+- **Shows an animated character** with four states: idle, listening,
+  working/typing, and speaking. Priority order: (1) a **video avatar** —
+  realistic clips in `character/media/` (`idle.mp4`, `listening.mp4`,
+  `working.mp4`, `speaking.mp4`), crossfaded per state; (2) your own 3D
+  model at `character/model.vrm` (three.js + three-vrm, made free in VRoid
+  Studio); (3) a built-in procedural placeholder character.
 - **Answers autonomously**: when someone in the meeting says **"hey buddy"**,
   desk-buddy takes what was said, asks a local LLM (Ollama), unmutes, speaks
   the answer out loud, and re-mutes. A manual Speak box on the control page
@@ -54,10 +56,16 @@ These cannot be automated, for the reasons noted:
    you than hidden inside setup.
 4. **Config** — copy `config.example.json` to `config.json` and adjust
    paths/device names if your audio devices are named differently.
-5. **Optional: your own character** — make a VRM model in VRoid Studio
-   (free) and save it as `character/model.vrm`. Without it, desk-buddy
-   renders a cute procedural placeholder character built from three.js
-   primitives, so nothing is required to start.
+5. **Optional: your own character** — two ways, video wins if both exist:
+   - **Video avatar**: put four short realistic clips in
+     `character/media/` named `idle.mp4`, `listening.mp4`, `working.mp4`,
+     and `speaking.mp4` and the character becomes those clips. The folder
+     is gitignored on purpose — it holds your face, keep it local.
+   - **3D model**: make a VRM model in VRoid Studio (free) and save it as
+     `character/model.vrm`.
+   With neither, desk-buddy renders a cute procedural placeholder
+   character built from three.js primitives, so nothing is required to
+   start.
 6. **Teams sign-in** — the first time desk-buddy opens Teams, sign in in
    the browser window it opens. The sign-in persists in the
    `.teams-profile` folder afterwards, so you only do this once.

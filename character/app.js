@@ -1,8 +1,11 @@
 // desk-buddy character page.
 //
-// Loads character/model.vrm (three-vrm) when present; otherwise builds a
-// cute procedural placeholder character from three.js primitives. Both
-// share the same four animation states, driven by the controller's
+// Avatar priority:
+//   1. Video avatar — realistic clips in character/media/ (idle.mp4,
+//      listening.mp4, working.mp4, speaking.mp4), crossfaded per state.
+//   2. character/model.vrm (three-vrm), when present.
+//   3. A cute procedural placeholder character from three.js primitives.
+// All share the same four animation states, driven by the controller's
 // /api/state endpoint (polled every 200 ms):
 //   idle      - gentle bobbing
 //   listening - lean in, head tilted toward the speaker
@@ -33,6 +36,10 @@ scene.add(dir);
 
 let currentState = 'idle';
 let amplitude = 0;
+let videoActive = false;
+let lastVideoState = null;
+const vidEls = [];
+let vidFront = 0;
 let vrm = null;          // three-vrm model, when loaded
 let rig = null;          // placeholder rig (meshes), when used
 
@@ -122,6 +129,66 @@ async function tryLoadVrm() {
   }
 }
 
+// ---------- video avatar (character/media/*.mp4) ----------
+async function tryVideoMode() {
+  try {
+    const head = await fetch('media/idle.mp4', { method: 'HEAD' });
+    if (!head.ok) return false;
+  } catch {
+    return false; // no clips -> fall through to VRM / placeholder
+  }
+  for (let i = 0; i < 2; i++) {
+    const v = document.createElement('video');
+    v.className = 'vid';
+    v.muted = true;
+    v.loop = true;
+    v.playsInline = true;
+    v.autoplay = true;
+    stage.appendChild(v);
+    vidEls.push(v);
+  }
+  // Preload the other state clips so state switches are instant.
+  for (const s of ['listening', 'working', 'speaking']) {
+    const pre = document.createElement('video');
+    pre.muted = true;
+    pre.preload = 'auto';
+    pre.src = `media/${s}.mp4`;
+    pre.style.display = 'none';
+    stage.appendChild(pre);
+  }
+  document.getElementById('hint').textContent =
+    'desk-buddy · video avatar (character/media/)';
+  videoActive = true;
+  syncVideo();
+  // Gentle scale pulse while speaking, driven by the TTS envelope.
+  setInterval(() => {
+    const target = currentState === 'speaking' ? 1 + amplitude * 0.03 : 1;
+    for (const v of vidEls) v.style.transform = `scale(${target})`;
+  }, 100);
+  return true;
+}
+
+function syncVideo() {
+  if (!videoActive || currentState === lastVideoState) return;
+  lastVideoState = currentState;
+  const back = vidEls[1 - vidFront];
+  const front = vidEls[vidFront];
+  back.onerror = () => {
+    // A missing state clip falls back to the idle clip.
+    if (!back.src.endsWith('media/idle.mp4')) back.src = 'media/idle.mp4';
+  };
+  back.src = `media/${currentState}.mp4`;
+  const swap = () => {
+    back.classList.add('on');
+    front.classList.remove('on');
+    vidFront = 1 - vidFront;
+    back.oncanplay = null;
+  };
+  back.oncanplay = swap;
+  back.play().catch(() => {});
+  if (back.readyState >= 3) swap();
+}
+
 // ---------- state polling ----------
 async function pollState() {
   try {
@@ -131,6 +198,7 @@ async function pollState() {
       currentState = data.state || 'idle';
       amplitude = data.amplitude || 0;
       stateLabel.textContent = currentState;
+      if (videoActive) syncVideo();
     }
   } catch {
     // Controller not reachable (e.g. page opened as a file): stay idle.
@@ -216,6 +284,9 @@ window.addEventListener('resize', () => {
 });
 
 // ---------- boot ----------
-vrm = await tryLoadVrm();
-if (!vrm) rig = buildPlaceholder();
-loop();
+const videoMode = await tryVideoMode();
+if (!videoMode) {
+  vrm = await tryLoadVrm();
+  if (!vrm) rig = buildPlaceholder();
+  loop();
+}

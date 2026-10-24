@@ -29,3 +29,7 @@ config.local.json
 *.mp3
 .DS_Store
 Thumbs.db
+
+# Personal video avatar clips and portrait (your face — keep them local;
+# this repo may be public). The character uses them when present.
+character/media/
